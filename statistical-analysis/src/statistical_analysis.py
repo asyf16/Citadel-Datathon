@@ -63,10 +63,18 @@ def get_event_window(prices_df: pd.DataFrame, ticker: str,
     if ticker_data.empty:
         return None
 
+    # Ensure Date is datetime so searchsorted works (handles CSV-loaded string dates)
+    if not pd.api.types.is_datetime64_any_dtype(ticker_data["Date"]):
+        ticker_data["Date"] = pd.to_datetime(ticker_data["Date"], errors="coerce")
+        ticker_data = ticker_data.dropna(subset=["Date"])
+        if ticker_data.empty:
+            return None
+
     ticker_data = ticker_data.sort_values("Date").reset_index(drop=True)
     trading_dates = ticker_data["Date"].values
 
-    idx = np.searchsorted(trading_dates, np.datetime64(pd.Timestamp(event_date)))
+    event_ts = pd.Timestamp(event_date)
+    idx = np.searchsorted(trading_dates, np.datetime64(event_ts))
     if idx >= len(trading_dates):
         idx = len(trading_dates) - 1
 
@@ -77,7 +85,10 @@ def get_event_window(prices_df: pd.DataFrame, ticker: str,
         return None
 
     window = ticker_data.iloc[start:end + 1].copy()
-    window["rel_day"] = np.arange(-(idx - start), end - idx + 1)
+    window["rel_day"] = np.arange(-(idx - start), end - idx + 1, dtype=np.intp)
+    # Ensure Volume is numeric (handles CSV-loaded string or object dtype)
+    if "Volume" in window.columns and not pd.api.types.is_numeric_dtype(window["Volume"]):
+        window["Volume"] = pd.to_numeric(window["Volume"], errors="coerce")
     return window
 
 
@@ -101,16 +112,16 @@ def compute_event_abnormal_volume_stats(
     if windows is None:
         windows = [(-1, 1), (0, 5), (0, 10), (0, 20)]
 
+    pre_lo, pre_hi = int(pre_window[0]), int(pre_window[1])
     records = []
     for i, row in events_df.iterrows():
-        w = get_event_window(prices_df, row["ticker"],
-                             row["announcement_date"], pre_days=40, post_days=25)
+        ann_date = pd.Timestamp(row["announcement_date"])
+        w = get_event_window(prices_df, row["ticker"], ann_date, pre_days=40, post_days=25)
         if w is None:
             records.append({f"abvol_{s}_{e}": np.nan for s, e in windows})
             continue
-        print(w["rel_day"])
-        print(pre_window[0])
-        pre_mask = (w["rel_day"] >= pre_window[0]) & (w["rel_day"] <= pre_window[1])
+        rel_day = np.asarray(w["rel_day"], dtype=np.intp)
+        pre_mask = (rel_day >= pre_lo) & (rel_day <= pre_hi)
         pre_vol = w.loc[pre_mask, "Volume"].mean()
         if pre_vol is None or pre_vol == 0 or np.isnan(pre_vol):
             records.append({f"abvol_{s}_{e}": np.nan for s, e in windows})
@@ -118,7 +129,8 @@ def compute_event_abnormal_volume_stats(
 
         rec = {}
         for s, e in windows:
-            mask = (w["rel_day"] >= s) & (w["rel_day"] <= e)
+            s, e = int(s), int(e)
+            mask = (rel_day >= s) & (rel_day <= e)
             post_vol = w.loc[mask, "Volume"].mean()
             rec[f"abvol_{s}_{e}"] = post_vol / pre_vol if not np.isnan(post_vol) else np.nan
         records.append(rec)
