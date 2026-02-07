@@ -27,5 +27,3 @@ def load_pair_data(ticker, start_date, end_date, cache=True):
     df = get_stock_data(ticker, start_date, end_date, cache)
     
     return df
-
-

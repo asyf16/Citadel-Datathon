@@ -7,7 +7,7 @@ def main():
     end_date = datetime.today().strftime("%Y-%m-%d")
 
     print(f"Starting correlation analysis from {start_date} to {end_date}")
-    tickers = ["GOOG", "META", "NFLX", "MSFT", "AMZN", "TSLA"]
+    tickers = ["NVDA","AAPL","MSFT","AMZN","GOOGL","GOOG","META","AVGO","TSLA","BRK.B","WMT","LLY","JPM","V","XOM","JNJ","MA","COST","MU","ORCL","BAC","ABBV","HD","PG","CVX","NFLX","KO","CAT","AMD","GE","CSCO","PLTR","MRK","WFC","LRCX","MS","PM","IBM","GS","RTX","AMAT","INTC","UNH","AXP","PEP","MCD","TMUS","C","GEV","LIN"]
     for ticker in tickers:
         print(f"\n{'='*50}")
         print(f"Processing {ticker}")
