@@ -2,6 +2,8 @@
 
 ## Context
 
+These were the instructions provided to Claude.
+
 **Question:** When a company discloses AI adoption, how many days until the stock sees peak abnormal returns?
 
 **Goal:** Predictive model — input (ticker, event details) → output (predicted lag in days).
