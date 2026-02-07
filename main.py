@@ -7,7 +7,7 @@ def main():
     end_date = datetime.today().strftime("%Y-%m-%d")
 
     print(f"Starting correlation analysis from {start_date} to {end_date}")
-    tickers = ["NVDA","AAPL","MSFT","AMZN","GOOGL","GOOG","META","AVGO","TSLA","BRK.B","WMT","LLY","JPM","V","XOM","JNJ","MA","COST","MU","ORCL","BAC","ABBV","HD","PG","CVX","NFLX","KO","CAT","AMD","GE","CSCO","PLTR","MRK","WFC","LRCX","MS","PM","IBM","GS","RTX","AMAT","INTC","UNH","AXP","PEP","MCD","TMUS","C","GEV","LIN","AMGN","TMO","TXN","VZ","ABT","DIS","T","BA","GILD","KLAC","SCHW","NEE","CRM","ISRG","ANET","TJX"]
+    tickers = ["NVDA","AAPL","MSFT","AMZN","GOOGL","GOOG","META","AVGO","TSLA","BRK.B","WMT","LLY","JPM","V","XOM","JNJ","MA","COST","MU","ORCL","BAC","ABBV","HD","PG","CVX","NFLX","KO","CAT","AMD","GE","CSCO","PLTR","MRK","WFC","LRCX","MS","PM","IBM","GS","RTX","AMAT","INTC","UNH","AXP","PEP","MCD","TMUS","C","GEV","LIN","AMGN","TMO","TXN","VZ","ABT","DIS","T","BA","GILD","KLAC","SCHW","NEE","CRM","ISRG","ANET","TJX", "APH", "BLK", "DE", "ALDI", "LOW", "UBER", "PFE", "DHR", "HON", "UNP", "ACN", "QCOM", "ETN", "BKNG"]
     for ticker in tickers:
         print(f"\n{'='*50}")
         print(f"Processing {ticker}")
