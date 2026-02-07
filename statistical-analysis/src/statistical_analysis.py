@@ -14,7 +14,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import statsmodels.api as sm
 from scipy import stats
 
@@ -35,40 +34,19 @@ DPI = 150
 # 1A. Data loading & utilities
 # ---------------------------------------------------------------------------
 
-def load_analysis_data(data_dir: str | Path | None = None) -> dict:
-    """
-    Load all datasets needed for statistical analysis.
-
-    Falls back to mock_data.py if real CSVs are absent.
-
-    Returns
-    -------
-    dict with keys: events, prices, spy_prices, edgar, ticker_dim, genai_dim
-    """
-    raw = data_loader()
-    return {
-        "events": raw["events"],
-        "prices": raw["stock_prices"],
-        "spy_prices": raw["spy_prices"],
-        "edgar": raw["edgar_capex"],
-        "ticker_dim": raw["ticker_dim"],
-        "genai_dim": raw["genai_releases"],
-        "injection_map": raw.get("injection_map"),
-        "_using_real": raw.get("_using_real", {}),
-    }
-
 
 def assign_period_bin(date: pd.Timestamp) -> str:
     """Assign a date to one of four analysis period bins."""
     year = pd.Timestamp(date).year
-    if year <= 2017:
-        return "2015-2017"
-    elif year <= 2020:
-        return "2018-2020"
-    elif year <= 2023:
-        return "2021-2023"
-    else:
-        return "2024-2025"
+    if year == 2022:
+        return "2022"
+    if year == 2023:
+        return "2023"
+
+    if year == 2024:
+        return "2024"
+    if year == 2025:
+        return "2025"
 
 
 def get_event_window(prices_df: pd.DataFrame, ticker: str,
@@ -112,7 +90,7 @@ def compute_event_abnormal_volume_stats(
     events_df: pd.DataFrame,
     windows: list[tuple[int, int]] | None = None,
     pre_window: tuple[int, int] = (-30, -5),
-) -> pd.DataFrame:
+):
     """
     Compute abnormal volume ratios for each event across multiple windows.
 
@@ -130,7 +108,8 @@ def compute_event_abnormal_volume_stats(
         if w is None:
             records.append({f"abvol_{s}_{e}": np.nan for s, e in windows})
             continue
-
+        print(w["rel_day"])
+        print(pre_window[0])
         pre_mask = (w["rel_day"] >= pre_window[0]) & (w["rel_day"] <= pre_window[1])
         pre_vol = w.loc[pre_mask, "Volume"].mean()
         if pre_vol is None or pre_vol == 0 or np.isnan(pre_vol):
@@ -484,10 +463,10 @@ def plot_abnormal_volume_by_period(stats_df: pd.DataFrame,
     fig, ax = plt.subplots(figsize=(8, 5))
     data = stats_df.dropna(subset=[window_col, "period_bin"])
 
-    sns.boxplot(data=data, x="period_bin", y=window_col,
-                color=COLOR_VOLUME, width=0.5, ax=ax, fliersize=0)
-    sns.stripplot(data=data, x="period_bin", y=window_col,
-                  color="black", alpha=0.3, size=3, ax=ax, jitter=True)
+    #sns.boxplot(data=data, x="period_bin", y=window_col,
+                #color=COLOR_VOLUME, width=0.5, ax=ax, fliersize=0)
+    #sns.stripplot(data=data, x="period_bin", y=window_col,
+                  #color="black", alpha=0.3, size=3, ax=ax, jitter=True)
     ax.axhline(y=1.0, color="red", linestyle="--", alpha=0.7, label="No abnormal volume")
     ax.set_xlabel("Period")
     ax.set_ylabel(f"Abnormal Volume Ratio ({window_col})")
@@ -503,10 +482,10 @@ def plot_volatility_change_by_period(vol_df: pd.DataFrame) -> plt.Figure:
     fig, ax = plt.subplots(figsize=(8, 5))
     data = vol_df.dropna(subset=["vol_change", "period_bin"])
 
-    sns.boxplot(data=data, x="period_bin", y="vol_change",
-                color=COLOR_VOLATILITY, width=0.5, ax=ax, fliersize=0)
-    sns.stripplot(data=data, x="period_bin", y="vol_change",
-                  color="black", alpha=0.3, size=3, ax=ax, jitter=True)
+    #sns.boxplot(data=data, x="period_bin", y="vol_change",
+                #color=COLOR_VOLATILITY, width=0.5, ax=ax, fliersize=0)
+    #sns.stripplot(data=data, x="period_bin", y="vol_change",
+                  #color="black", alpha=0.3, size=3, ax=ax, jitter=True)
     ax.axhline(y=0, color="red", linestyle="--", alpha=0.7, label="No change")
     ax.set_xlabel("Period")
     ax.set_ylabel("Volatility Change (post - pre)")
