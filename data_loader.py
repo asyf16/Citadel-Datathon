@@ -3,7 +3,7 @@ import pandas as pd
 import yfinance as yf
 
 def get_data_path(ticker, start_date, end_date, folder="data/raw"):
-    filename = f"{ticker}_{start_date}_to_{end_date}_raw.csv"
+    filename = f"{ticker}.csv"
     return os.path.join(folder, filename)
 
 
